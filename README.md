@@ -1,10 +1,10 @@
-# gscripter - AI-Powered Web Development Editor
+# Gscripter - AI-Powered Web Development Editor
 
 ![GitHub License](https://img.shields.io/github/license/jessegyger/gscripter)
 ![GitHub Stars](https://img.shields.io/github/stars/jessegyger/gscripter?style=social)
 ![GitHub Issues](https://img.shields.io/github/issues/jessegyger/gscripter)
 
-**gscripter** is an open-source, lightweight, and extensible code editor designed for web developers, with seamless integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gscripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
+**Gscripter** is an open-source, lightweight, and extensible code editor designed for web developers, with seamless integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gscripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
 
 ## Table of Contents
 
