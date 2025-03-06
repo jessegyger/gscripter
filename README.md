@@ -144,7 +144,7 @@ Note: You must refresh the AI model tab (Grok, Claude, etc.) for the code to pro
 
 ### Core Components
 
-- **`TextEditor`**: Singleton class managing the editor UI, tabs, and file operations.
+- **`TextEditor`**: The class that manages the editor UI, tabs, and file operations.
 - **`AINavigationManager`**: Handles navigation and display of AI code chunks with streaming support.
 - **`AICodeViewer`**: Renders AI code blocks with editing, copying, and matching capabilities.
 - **`CodeMatchManager`**: Analyzes and matches AI code with the editor’s content.
