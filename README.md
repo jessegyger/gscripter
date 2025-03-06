@@ -54,10 +54,10 @@
 
 ### Editor Setup
 
-1. **Clone the Repository**:
-   Simply download the zip and extract it
-   or
-   git clone https://github.com/yourusername/gscripter.git
+1. **Download the zip**:
+   Simply download the zip and extract it or
+   
+   git clone https://github.com/jessegyger/gscripter.git
    cd gscripter
 
 3. **Open in Browser**:
