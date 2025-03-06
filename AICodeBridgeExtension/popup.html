@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AICodeBridge</title>
+  <style>
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --text-primary: #ffffff;
+      --text-secondary: #888;
+      --accent: #404040;
+      --accent-hover: #505050;
+      --active-color: #4a90e2;
+      --border: #3d3d3d;
+      --handle-width: 12px;
+    }
+    body {
+      width: 220px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      margin: 0;
+      border: 3px solid var(--border);
+    }
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 3px solid var(--border);
+      border-radius: 10px;
+      padding: 5px;
+    }
+    .header {
+      font-size: 14px;
+      color: var(--text-secondary);
+      flex-grow: 1;
+      text-align: center;
+      margin-right: 2px;
+    }
+    .settings-cog {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      fill: var(--text-secondary);
+    }
+    .settings-cog:hover {
+      fill: var(--text-primary);
+    }
+    .controls {
+      border: 3px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .toggle-label {
+      flex-grow: 1;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--accent);
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-primary);
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--active-color);
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .all-toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .all-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="header-container">
+    <div class="header">AI<->Code Bridge</div>
+    <svg class="settings-cog" id="settingsCog" viewBox="0 0 24 24">
+      <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.43-.48-.43h-3.84c-.24 0-.43.19-.47.43l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.07-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.43.48.43h3.84c.24 0 .44-.19.47-.43l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.07.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+    </svg>
+  </div>
+  <div class="controls">
+    <div class="toggle-container">
+      <span class="toggle-label">Grok</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="grokSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-container">
+      <span class="toggle-label">Claude</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="claudeSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-container">
+      <span class="toggle-label">ChatGPT</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="chatgptSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-container">
+      <span class="toggle-label">Gemini</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="geminiSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="all-toggle-container">
+      <span class="all-label">All Off</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="allSwitch">
+        <span class="slider"></span>
+      </label>
+      <span class="all-label">All On</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

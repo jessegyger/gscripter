@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AICodeBridge Settings</title>
+  <style>
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --text-primary: #ffffff;
+      --text-secondary: #888;
+      --accent: #404040;
+      --accent-hover: #505050;
+      --success: #2ecc71;
+      --success-dark: #27ae60;
+      --border: #3d3d3d;
+      --handle-width: 12px;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    h1 { font-size: 24px; }
+    section { margin-bottom: 20px; }
+    label { display: block; margin: 5px 0; }
+    input[type="checkbox"] { margin-right: 5px; }
+    input[type="number"] { 
+      width: 100px; 
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    textarea { 
+      width: 100%; 
+      height: 100px; 
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    button { 
+      padding: 5px 10px; 
+      margin-top: 10px; 
+      background-color: var(--accent);
+      color: var(--text-primary);
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    small { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <h1>AICodeBridge Settings</h1>
+  
+  <section>
+    <h2>Messaging</h2>
+    <label><input type="checkbox" id="grokMessaging"> Enable Grok Messaging</label>
+    <label><input type="checkbox" id="claudeMessaging"> Enable Claude Messaging</label>
+    <label><input type="checkbox" id="chatgptMessaging"> Enable ChatGPT Messaging</label>
+    <label><input type="checkbox" id="geminiMessaging"> Enable Gemini Messaging</label>
+  </section>
+  
+  <section>
+    <h2>Ping Intervals</h2>
+    <label>Grok Ping Interval (ms): <input type="number" id="grokPing" min="1000" max="10000" step="500"></label>
+    <label>Claude Ping Interval (ms): <input type="number" id="claudePing" min="1000" max="10000" step="500"></label>
+    <label>ChatGPT Ping Interval (ms): <input type="number" id="chatgptPing" min="1000" max="10000" step="500"></label>
+    <label>Gemini Ping Interval (ms): <input type="number" id="geminiPing" min="1000" max="10000" step="500"></label>
+  </section>
+  
+  <section>
+    <h2>Target Tabs</h2>
+    <label>
+      Target URLs (one per line):
+      <textarea id="targetUrls" placeholder="e.g.\nfile:///*/index.html\nhttps://gygertech.com/*\nhttps://example.com/specific.html"></textarea>
+    </label>
+    <p><small>Leave blank for defaults (file:///*/index.html, https://gygertech.com/gscripter/*). Use * for wildcards.</small></p>
+  </section>
+  
+  <button id="save">Save Settings</button>
+  <button id="reset">Reset to Defaults</button>
+  
+  <script src="options.js"></script>
+</body>
+</html>

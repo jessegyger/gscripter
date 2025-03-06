@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "AICodeBridge",
+  "version": "1.0",
+  "permissions": ["tabs", "scripting", "storage"],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://grok.com/*",
+    "https://claude.ai/*",
+    "https://gygertech.com/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*",
+    "file:///*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/i/grok*",
+        "https://x.com/*grok*",
+        "https://grok.com/*"
+      ],
+      "js": ["grokContentScript.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://claude.ai/chat*"
+      ],
+      "js": ["claudeContentScript.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": ["chatgptContentScript.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": ["geminiContentScript.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "file:///*/index.html",
+        "https://gygertech.com/gscripter/*"
+      ],
+      "js": ["indexContentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
