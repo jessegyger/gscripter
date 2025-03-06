@@ -1,10 +1,10 @@
-# gScripter - AI-Powered Web Development Editor
+# gscripter - AI-Powered Web Development Editor
 
 ![GitHub License](https://img.shields.io/github/license/yourusername/gscripter)
 ![GitHub Stars](https://img.shields.io/github/stars/yourusername/gscripter?style=social)
 ![GitHub Issues](https://img.shields.io/github/issues/yourusername/gscripter)
 
-**gScripter** is an open-source, lightweight, and extensible code editor designed for web developers, with seamless integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gScripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
+**gscripter** is an open-source, lightweight, and extensible code editor designed for web developers, with seamless integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gscripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
 
 ## Table of Contents
 
@@ -106,7 +106,7 @@
 - Prompt the AI to generate code.
 
 2. **Import Code**:
-- With the Chrome extension active, code blocks from these tabs are detected and sent to gScripter.
+- With the Chrome extension active, code blocks from these tabs are detected and sent to gscripter.
 - In the editor, open the **AI Pane** (right sidebar) and select your AI model (Grok, Claude, etc.).
 Note: You must refresh the AI model tab (Grok, Claude, etc.) for the code to properly inject.
 
@@ -272,5 +272,5 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 - **Ace Editor**: For providing a powerful editing foundation.
 - **xAI, Anthropic, OpenAI, Google**: For their AI models that inspire this tool.
-- **Contributors**: Thanks to all who test, report bugs, and improve gScripter!
+- **Contributors**: Thanks to all who test, report bugs, and improve gscripter!
 
