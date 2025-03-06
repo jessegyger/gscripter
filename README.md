@@ -155,6 +155,7 @@ Note: You must refresh the AI model tab (Grok, Claude, etc.) for the code to pro
 
 ### File Structure
 
+```plaintext
 gscripter/
 ├── index.html          # Main entry point
 ├── ace/
@@ -165,18 +166,18 @@ gscripter/
 │   ├── theme/
 │   │   └── theme-monokai.js # Monokai theme
 │   ├── mode-javascript.js # JS syntax highlighting
-│   ├── mode-html.js     # HTML syntax highlighting
-│   ├── mode-css.js      # CSS syntax highlighting
-│   ├── mode-python.js   # Python syntax highlighting
-│   ├── mode-java.js     # Java syntax highlighting
+│   ├── mode-html.js    # HTML syntax highlighting
+│   ├── mode-css.js     # CSS syntax highlighting
+│   ├── mode-python.js  # Python syntax highlighting
+│   ├── mode-java.js    # Java syntax highlighting
 │   ├── mode-typescript.js # TS syntax highlighting
-│   ├── mode-php.js      # PHP syntax highlighting
-│   ├── mode-ruby.js     # Ruby syntax highlighting
-│   ├── mode-golang.js   # Go syntax highlighting
-│   ├── mode-sql.js      # SQL syntax highlighting
+│   ├── mode-php.js     # PHP syntax highlighting
+│   ├── mode-ruby.js    # Ruby syntax highlighting
+│   ├── mode-golang.js  # Go syntax highlighting
+│   ├── mode-sql.js     # SQL syntax highlighting
 │   ├── mode-markdown.js # Markdown syntax highlighting
-│   ├── mode-json.js     # JSON syntax highlighting
-│   └── mode-xml.js      # XML syntax highlighting
+│   ├── mode-json.js    # JSON syntax highlighting
+│   └── mode-xml.js     # XML syntax highlighting
 ├── AICodeBridgeExtension/
 │   ├── manifest.json   # Chrome extension manifest
 │   ├── background.js   # Extension background script
@@ -191,6 +192,7 @@ gscripter/
 │   └── popup.html      # Popup UI
 ├── README.md           # This file
 └── (other assets)      # Images, additional scripts, etc.
+```
 
 
 
