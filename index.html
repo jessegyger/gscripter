@@ -879,21 +879,26 @@
 
 class Settings {
     constructor() {
-        this.storageDirectory = localStorage.getItem('storageDirectory') || this.getDefaultDirectory();
-        this.useStorageDirectory = localStorage.getItem('useStorageDirectory') !== 'false';
+        // Use the default or saved preference
+        this.preferredLocation = localStorage.getItem('preferredLocation') || this.getDefaultDirectory();
         this.dirHandle = null;
         this.lastDirHandle = null;
+        this.settingsWindow = null;
+        this.setupSettingsWindow();
     }
 
     getDefaultDirectory() {
         return 'desktop';
     }
 
+    setPreferredLocation(location) {
+        this.preferredLocation = location;
+        localStorage.setItem('preferredLocation', location);
+    }
+
     setStorageDirectory(path) {
-        const normalizedPath = path.replace(/[\\/]+/g, window.navigator.platform.includes('Win') ? '\\' : '/');
-        this.storageDirectory = normalizedPath;
-        localStorage.setItem('storageDirectory', normalizedPath);
-        this.dirHandle = null;
+        this.storageDirectory = path;
+        // Don't save to localStorage anymore to avoid persistence between sessions
     }
 
     getStorageDirectory() {
@@ -911,6 +916,7 @@ class Settings {
 
     setLastDirHandle(handle) {
         this.lastDirHandle = handle;
+        // We don't persist handles between sessions since they become invalid
     }
 
     getLastDirHandle() {
@@ -919,6 +925,14 @@ class Settings {
 
     setDirHandle(handle) {
         this.dirHandle = handle;
+        if (handle) {
+            // Only update the display
+            this.settingsWindow.querySelector('#storageDirInput').value = handle.name;
+        }
+    }
+
+    getPreferredLocation() {
+        return this.preferredLocation;
     }
 
     getEffectiveDirHandle() {
@@ -926,12 +940,241 @@ class Settings {
     }
 
     getEffectiveStartIn() {
-        const path = this.getStorageDirectory().toLowerCase();
-        if (this.getEffectiveDirHandle()) return this.getEffectiveDirHandle();
-        if (path.includes('desktop')) return 'desktop';
-        if (path.includes('documents')) return 'documents';
-        if (path.includes('downloads')) return 'downloads';
-        return undefined;
+        // If we have a directory handle, use it
+        if (this.dirHandle) {
+            return this.dirHandle;
+        }
+    
+        // Otherwise, use the preferred location
+        return this.preferredLocation;
+    }
+
+    setupSettingsWindow() {
+        this.settingsWindow = document.createElement('div');
+        this.settingsWindow.className = 'settings-window';
+        this.settingsWindow.innerHTML = `
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button class="settings-close">✕</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-field">
+                    <label>Storage Directory</label>
+                    <div class="settings-input-container">
+                        <input type="text" id="storageDirInput" value="${this.dirHandle ? this.dirHandle.name : 'No custom directory selected'}" readonly>
+                        <button class="browse-button" id="browseDir">Browse</button>
+                    </div>
+                    <div class="settings-hint">
+                        <small>Use the Browse button to select your custom directory or use a standard location:</small>
+                    </div>
+                    <div class="location-buttons">
+                        <button id="desktopLocation" class="location-button ${this.preferredLocation === 'desktop' ? 'active' : ''}">Desktop</button>
+                        <button id="documentsLocation" class="location-button ${this.preferredLocation === 'documents' ? 'active' : ''}">Documents</button>
+                        <button id="downloadsLocation" class="location-button ${this.preferredLocation === 'downloads' ? 'active' : ''}">Downloads</button>
+                    </div>
+                </div>
+    
+                <div class="settings-section">
+                    <h4>Downloads</h4>
+                    <div class="download-container">
+                        <button id="downloadExtension" class="download-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download AICodeBridge Chrome Extension (unpacked)
+                        </button>
+                        <br> 
+                        <u>Instructions:</u>
+                        <br>
+                        1. - Download the zip file, extract it.
+                        <br>
+                        2. - In google chrome go to chrome://extensions/ and enable developer mode.
+                        <br>
+                        3. - Click load unpacked and select the extracted folder.
+                    </div>
+                </div>
+    
+                <div class="settings-buttons">
+                    <button class="settings-button" id="settingsSave">Save</button>
+                    <button class="settings-button" id="settingsCancel">Cancel</button>
+                </div>
+            </div>
+        `;
+    
+        // Add some styles for the location buttons
+        const style = document.createElement('style');
+        style.textContent = `
+            .location-buttons {
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            .location-button {
+                padding: 5px 10px;
+                background-color: #333;
+                border: 1px solid #555;
+                color: #eee;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .location-button:hover {
+                background-color: #444;
+            }
+            .location-button.active {
+                background-color: #3a7ca5;
+                border-color: #5a9cc5;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+    
+        document.body.appendChild(this.settingsWindow);
+
+        this.settingsWindow.querySelector('#settingsSave').addEventListener('click', () => this.saveSettings());
+        this.settingsWindow.querySelector('#settingsCancel').addEventListener('click', () => this.toggleSettingsWindow());
+        this.settingsWindow.querySelector('.settings-close').addEventListener('click', () => this.toggleSettingsWindow());
+        this.settingsWindow.querySelector('#browseDir').addEventListener('click', () => this.browseDirectory());
+
+        // Set up location button event listeners
+        this.settingsWindow.querySelector('#desktopLocation').addEventListener('click', () => this.selectLocation('desktop'));
+        this.settingsWindow.querySelector('#documentsLocation').addEventListener('click', () => this.selectLocation('documents'));
+        this.settingsWindow.querySelector('#downloadsLocation').addEventListener('click', () => this.selectLocation('downloads'));
+
+        this.settingsWindow.querySelector('#downloadExtension').addEventListener('click', () => {
+            this.downloadExtension('./AICodeBridgeExtension.zip');
+        });
+
+        this.makeDraggable(this.settingsWindow);
+        this.centerSettingsWindow();
+    }
+
+    toggleSettingsWindow() {
+        const isVisible = this.settingsWindow.classList.contains('visible');
+        if (!isVisible) {
+            // Refresh button states when opening
+            this.settingsWindow.querySelectorAll('.location-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            const locationButton = this.settingsWindow.querySelector(`#${this.preferredLocation}Location`);
+            if (locationButton) {
+                locationButton.classList.add('active');
+            }
+        
+            // Set the input value
+            this.settingsWindow.querySelector('#storageDirInput').value = 
+                this.dirHandle ? this.dirHandle.name : 'No custom directory selected';
+            
+            this.centerSettingsWindow();
+        }
+        this.settingsWindow.classList.toggle('visible');
+    }
+
+    selectLocation(location) {
+        // Update buttons
+        this.settingsWindow.querySelectorAll('.location-button').forEach(button => {
+            button.classList.remove('active');
+        });
+        this.settingsWindow.querySelector(`#${location}Location`).classList.add('active');
+    
+        // Save the preference (but don't close the window yet)
+        this.preferredLocation = location;
+    }
+
+    saveSettings() {
+        // Save the selected location
+        this.setPreferredLocation(this.preferredLocation);
+    
+        this.toggleSettingsWindow();
+        TextEditor.showStatusMessage('Settings saved', true);
+    }
+
+    async browseDirectory() {
+        try {
+            const dirHandle = await window.showDirectoryPicker();
+            this.setDirHandle(dirHandle);
+        
+            // When a custom directory is browsed, update to reflect this
+            this.settingsWindow.querySelectorAll('.location-button').forEach(button => {
+                button.classList.remove('active');
+            });
+        
+            // Update the input field
+            this.settingsWindow.querySelector('#storageDirInput').value = dirHandle.name;
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Failed to select directory:', err);
+                TextEditor.showStatusMessage('Error selecting directory');
+            }
+        }
+    }
+
+    downloadExtension(filePath) {
+        const link = document.createElement('a');
+        link.href = filePath;
+        link.download = 'AICodeBridgeExtension.crx';
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        setTimeout(() => {
+            document.body.removeChild(link);
+        }, 100);
+    }
+
+    makeDraggable(element) {
+        const header = element.querySelector('.settings-header');
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - element.getBoundingClientRect().left;
+            offsetY = e.clientY - element.getBoundingClientRect().top;
+            header.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                const newLeft = e.clientX - offsetX;
+                const newTop = e.clientY - offsetY;
+                const maxLeft = window.innerWidth - element.offsetWidth;
+                const maxTop = window.innerHeight - element.offsetHeight;
+                element.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
+                element.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
+                element.style.transform = 'none';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                header.style.cursor = 'move';
+            }
+        });
+    }
+
+    centerSettingsWindow() {
+        const win = this.settingsWindow;
+        if (!win.classList.contains('visible')) {
+            requestAnimationFrame(() => {
+                const left = (window.innerWidth - win.offsetWidth) / 2;
+                const top = (window.innerHeight - win.offsetHeight) / 2;
+                win.style.left = `${left}px`;
+                win.style.top = `${top}px`;
+                win.style.transform = 'none';
+            });
+        } else {
+            const left = (window.innerWidth - win.offsetWidth) / 2;
+            const top = (window.innerHeight - win.offsetHeight) / 2;
+            win.style.left = `${left}px`;
+            win.style.top = `${top}px`;
+            win.style.transform = 'none';
+        }
     }
 }
 
@@ -1981,7 +2224,6 @@ class TextEditor {
 
         this.setupGlobalKeyboardShortcuts();
         this.setupDropZone();
-        this.setupSettingsWindow();
         this.addSettingsButton();
         this.updateStatusBarStyle();
 
@@ -1992,13 +2234,13 @@ class TextEditor {
 
     setupGlobalKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
-            // Handle Ctrl+S (or Cmd+S on Mac)
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 TextEditor.saveFile();
             }
         });
     }
+
     initEditor(tabId) {
         const editor = this.tabManager.getEditor(tabId);
         if (!editor) return;
@@ -2109,22 +2351,6 @@ class TextEditor {
             }
         });
     }
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) &&
-                (e.key === 's' || e.key === 'o' || e.key === 'b' ||
-                 e.key === 't' || e.key === 'w')) {
-                e.preventDefault();
-            }
-        });
-
-        const initialEditor = this.getActiveEditor();
-        if (initialEditor) {
-            this.setupEditorCommands(initialEditor);
-        }
-
-        this.tabManager.setupEditorShortcuts = this.setupEditorCommands.bind(this);
-    }
 
     getActiveEditor() {
         return this.tabManager.getActiveEditor();
@@ -2148,148 +2374,140 @@ class TextEditor {
     }
 
     static showStatusMessage(message, isSuccess = false) {
-    const statusBar = document.getElementById('statusBar');
-
-    // Clear any existing timers to prevent race conditions
-    if (statusBar._hideTimer) {
-      clearTimeout(statusBar._hideTimer);
-      statusBar._hideTimer = null;
-    }
-
-    // Update the status message
-    statusBar.textContent = message;
-
-    // Remove the success class first to reset any existing animation
-    statusBar.classList.remove('saved');
-
-    // Force reflow to make sure the removal takes effect
-    void statusBar.offsetWidth;
-
-    if (isSuccess) {
-      // Add the success class for styling
-      statusBar.classList.add('saved');
-
-      // Set a timer to remove the class after 2 seconds
-      statusBar._hideTimer = setTimeout(() => {
+        const statusBar = document.getElementById('statusBar');
+        if (statusBar._hideTimer) {
+            clearTimeout(statusBar._hideTimer);
+            statusBar._hideTimer = null;
+        }
+        statusBar.textContent = message;
         statusBar.classList.remove('saved');
-        statusBar._hideTimer = null;
-      }, 2000);
+        void statusBar.offsetWidth;
+        if (isSuccess) {
+            statusBar.classList.add('saved');
+            statusBar._hideTimer = setTimeout(() => {
+                statusBar.classList.remove('saved');
+                statusBar._hideTimer = null;
+            }, 2000);
+        }
     }
-  }
 
     static async saveFile() {
         try {
-          const activeTabId = TextEditor.instance.tabManager.activeTabId;
-          if (!activeTabId) {
-            TextEditor.showStatusMessage('No active tab to save');
-            return;
-          }
-    
-          const tab = TextEditor.instance.tabManager.tabs.get(activeTabId);
-          if (!tab) {
-            TextEditor.showStatusMessage('Tab not found');
-            return;
-          }
-    
-          if (tab.customFileInfo) {
-            const saved = await TextEditor.instance.tabManager.saveTabWithCustomFile(activeTabId);
-            if (saved) {
-              TextEditor.showStatusMessage('File saved successfully', true);
+            const activeTabId = TextEditor.instance.tabManager.activeTabId;
+            if (!activeTabId) {
+                TextEditor.showStatusMessage('No active tab to save');
+                return;
             }
-            return;
-          }
-    
-          const content = tab.editor.getValue();
-    
-          if (!tab.fileHandle) {
-            await TextEditor.saveFileAs();
-            return;
-          }
-    
-          // Show an indicator that save operation is in progress
-          TextEditor.showStatusMessage('Saving file...');
-    
-          // Use Promise to handle the save operation
-          const writable = await tab.fileHandle.createWritable();
-          await writable.write(content);
-          await writable.close();
-    
-          // Mark the editor as clean after successful save
-          tab.editor.session.getUndoManager().markClean();
-          TextEditor.instance.tabManager.updateTabState(activeTabId);
-    
-          // Show success message only after the save is complete
-          TextEditor.showStatusMessage('File saved successfully', true);
+
+            const tab = TextEditor.instance.tabManager.tabs.get(activeTabId);
+            if (!tab) {
+                TextEditor.showStatusMessage('Tab not found');
+                return;
+            }
+
+            if (tab.customFileInfo) {
+                const saved = await TextEditor.instance.tabManager.saveTabWithCustomFile(activeTabId);
+                if (saved) {
+                    TextEditor.showStatusMessage('File saved successfully', true);
+                }
+                return;
+            }
+
+            const content = tab.editor.getValue();
+
+            if (!tab.fileHandle) {
+                await TextEditor.saveFileAs();
+                return;
+            }
+
+            TextEditor.showStatusMessage('Saving file...');
+            const writable = await tab.fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+
+            tab.editor.session.getUndoManager().markClean();
+            TextEditor.instance.tabManager.updateTabState(activeTabId);
+        
+            // Always update the lastDirHandle regardless of useStorageDirectory setting
+            // This ensures the last location is always tracked
+            TextEditor.instance.settings.setLastDirHandle(tab.fileHandle);
+        
+            TextEditor.showStatusMessage('File saved successfully', true);
         } catch (err) {
-          console.error('Failed to save file:', err);
-          TextEditor.showStatusMessage('Error saving file');
+            console.error('Failed to save file:', err);
+            TextEditor.showStatusMessage('Error saving file');
         }
     }
 
     static async saveFileAs() {
         try {
-          const activeTabId = TextEditor.instance.tabManager.activeTabId;
-          if (!activeTabId) {
-            TextEditor.showStatusMessage('No active tab to save');
-            return;
-          }
-    
-          const tab = TextEditor.instance.tabManager.tabs.get(activeTabId);
-          if (!tab) {
-            TextEditor.showStatusMessage('Tab not found');
-            return;
-          }
-    
-          const content = tab.editor.getValue();
-    
-          const options = {
-            suggestedName: tab.name || 'untitled.txt',
-            types: [{
-              description: 'Text Files',
-              accept: {
-                'text/plain': [
-                  '.txt', '.js', '.py', '.html', '.css',
-                  '.json', '.xml', '.md', '.ts', '.php',
-                  '.rb', '.go', '.sql'
-                ],
-              },
-            }]
-          };
-    
-          const startIn = TextEditor.instance.settings.getEffectiveStartIn();
-          if (startIn) options.startIn = startIn;
-    
-          // Show an indicator that we're waiting for user input
-          TextEditor.showStatusMessage('Waiting for save location...');
-    
-          const handle = await window.showSaveFilePicker(options);
-    
-          // Show indicator that save is in progress
-          TextEditor.showStatusMessage('Saving file...');
-    
-          const writable = await handle.createWritable();
-          await writable.write(content);
-          await writable.close();
-    
-          TextEditor.instance.tabManager.setFileHandle(activeTabId, handle);
-          TextEditor.detectLanguage(handle.name);
-          tab.editor.session.getUndoManager().markClean();
-          TextEditor.instance.tabManager.updateTabState(activeTabId);
-          TextEditor.instance.settings.setLastDirHandle(handle);
-    
-          // Show success only after everything is complete
-          TextEditor.showStatusMessage('File saved successfully', true);
+            const activeTabId = TextEditor.instance.tabManager.activeTabId;
+            if (!activeTabId) {
+                TextEditor.showStatusMessage('No active tab to save');
+                return;
+            }
+
+            const tab = TextEditor.instance.tabManager.tabs.get(activeTabId);
+            if (!tab) {
+                TextEditor.showStatusMessage('Tab not found');
+                return;
+            }
+
+            const content = tab.editor.getValue();
+
+            const options = {
+                suggestedName: tab.name || 'untitled.txt',
+                types: [{
+                    description: 'Text Files',
+                    accept: {
+                        'text/plain': [
+                            '.txt', '.js', '.py', '.html', '.css',
+                            '.json', '.xml', '.md', '.ts', '.php',
+                            '.rb', '.go', '.sql'
+                        ],
+                    },
+                }]
+            };
+
+            // Get the effective starting directory
+            const startIn = TextEditor.instance.settings.getEffectiveStartIn();
+        
+            // Apply the starting directory to options
+            if (startIn) {
+                if (typeof startIn === 'string') {
+                    // Only use well-known locations
+                    if (['desktop', 'documents', 'downloads'].includes(startIn)) {
+                        options.startIn = startIn;
+                    }
+                } else if (startIn instanceof FileSystemDirectoryHandle) {
+                    // Use the directory handle if available
+                    options.startIn = startIn;
+                }
+            }
+
+            TextEditor.showStatusMessage('Waiting for save location...');
+            const handle = await window.showSaveFilePicker(options);
+            TextEditor.showStatusMessage('Saving file...');
+
+            const writable = await handle.createWritable();
+            await writable.write(content);
+            await writable.close();
+
+            TextEditor.instance.tabManager.setFileHandle(activeTabId, handle);
+            TextEditor.detectLanguage(handle.name);
+            tab.editor.session.getUndoManager().markClean();
+            TextEditor.instance.tabManager.updateTabState(activeTabId);
+        
+            TextEditor.showStatusMessage('File saved successfully', true);
         } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Failed to save file as:', err);
-            TextEditor.showStatusMessage('Error saving file');
-          } else {
-            // User canceled the save dialog
-            TextEditor.showStatusMessage('Save canceled');
-          }
+            if (err.name !== 'AbortError') {
+                console.error('Failed to save file as:', err);
+                TextEditor.showStatusMessage('Error saving file');
+            } else {
+                TextEditor.showStatusMessage('Save canceled');
+            }
         }
     }
-
 
     static async openFile() {
         try {
@@ -2306,8 +2524,21 @@ class TextEditor {
                 }]
             };
 
+            // Get the effective starting directory
             const startIn = TextEditor.instance.settings.getEffectiveStartIn();
-            if (startIn) options.startIn = startIn;
+        
+            // Apply the starting directory to options
+            if (startIn) {
+                if (typeof startIn === 'string') {
+                    // Only use well-known locations
+                    if (['desktop', 'documents', 'downloads'].includes(startIn)) {
+                        options.startIn = startIn;
+                    }
+                } else if (startIn instanceof FileSystemDirectoryHandle) {
+                    // Use the directory handle if available
+                    options.startIn = startIn;
+                }
+            }
 
             const [fileHandle] = await window.showOpenFilePicker(options);
             const file = await fileHandle.getFile();
@@ -2331,7 +2562,6 @@ class TextEditor {
                 TextEditor.instance.initEditor(tabId);
             }
 
-            TextEditor.instance.settings.setLastDirHandle(fileHandle);
             TextEditor.instance.tabManager.activateTab(tabId);
             TextEditor.instance.getActiveEditor().focus();
         } catch (err) {
@@ -2359,162 +2589,151 @@ class TextEditor {
     }
 
     setupDropZone() {
-    // Set up the entire document as a drop zone
-    document.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      document.body.classList.add('drag-over');
-    });
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.classList.add('drag-over');
+        });
 
-    document.addEventListener('dragleave', (e) => {
-      if (e.target === document.documentElement) {
-        document.body.classList.remove('drag-over');
-      }
-    });
+        document.addEventListener('dragleave', (e) => {
+            if (e.target === document.documentElement) {
+                document.body.classList.remove('drag-over');
+            }
+        });
 
-    document.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      document.body.classList.remove('drag-over');
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.classList.remove('drag-over');
 
-      if (e.dataTransfer.files.length > 0) {
-        const files = Array.from(e.dataTransfer.files);
-        for (const file of files) {
-          try {
-            // Open each file in its own tab without asking for save permission
-            await this.openFileFromFileObject(file);
-          } catch (err) {
-            console.error('Error opening file:', err);
-            TextEditor.showStatusMessage('Error opening file: ' + err.message, 'error');
-          }
-        }
-      }
-    });
+            if (e.dataTransfer.files.length > 0) {
+                const files = Array.from(e.dataTransfer.files);
+                for (const file of files) {
+                    try {
+                        await this.openFileFromFileObject(file);
+                    } catch (err) {
+                        console.error('Error opening file:', err);
+                        TextEditor.showStatusMessage('Error opening file: ' + err.message, 'error');
+                    }
+                }
+            }
+        });
 
-    // Add a style for drag-over effect
-    const style = document.createElement('style');
-    style.textContent = `
-      body.drag-over::after {
-        content: 'Drop files to open';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        font-weight: bold;
-        z-index: 9999;
-        pointer-events: none;
-      }
-    `;
-    document.head.appendChild(style);
-  }
+        const style = document.createElement('style');
+        style.textContent = `
+            body.drag-over::after {
+                content: 'Drop files to open';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                font-weight: bold;
+                z-index: 9999;
+                pointer-events: none;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     async convertFileToHandle(file) {
-        // Check if the File System Access API is available
         if ('showSaveFilePicker' in window) {
-          try {
-            const handle = await window.showSaveFilePicker({
-              suggestedName: file.name,
-              types: [{
-                description: 'Text Files',
-                accept: {
-                  'text/plain': ['.txt', '.js', '.py', '.html', '.css',
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: file.name,
+                    types: [{
+                        description: 'Text Files',
+                        accept: {
+                            'text/plain': ['.txt', '.js', '.py', '.html', '.css',
                                 '.json', '.xml', '.md', '.ts', '.php',
                                 '.rb', '.go', '.sql'],
-                },
-              }],
-            });
+                        },
+                    }],
+                });
     
-            const content = await file.text();
+                const content = await file.text();
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
     
-            const writable = await handle.createWritable();
-            await writable.write(content);
-            await writable.close();
-    
-            return handle;
-          } catch (err) {
-            if (err.name === 'AbortError') {
-              // User cancelled the save dialog, fall back to File object
-              return null;
+                return handle;
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    return null;
+                }
+                throw err;
             }
-            throw err;
-          }
         }
         return null;
     }
 
     async openFileFromHandle(fileHandle) {
         try {
-          const file = await fileHandle.getFile();
-          const content = await file.text();
+            const file = await fileHandle.getFile();
+            const content = await file.text();
     
-          const untitledTabId = this.tabManager.hasUntitledUnmodifiedTab();
-          let tabId;
+            const untitledTabId = this.tabManager.hasUntitledUnmodifiedTab();
+            let tabId;
     
-          if (untitledTabId) {
-            const tab = this.tabManager.tabs.get(untitledTabId);
-            tab.fileHandle = fileHandle;
-            this.tabManager.updateTabName(untitledTabId, fileHandle.name);
-            tab.editor.setValue(content, -1);
-            tab.editor.session.setMode(TextEditor.detectLanguage(file.name));
-            tab.editor.session.getUndoManager().reset();
-            tab.editor.session.getUndoManager().markClean();
-            this.tabManager.updateTabState(untitledTabId);
-            tabId = untitledTabId;
-          } else {
-            tabId = this.tabManager.createNewTab(fileHandle, content);
-            this.initEditor(tabId);
-          }
+            if (untitledTabId) {
+                const tab = this.tabManager.tabs.get(untitledTabId);
+                tab.fileHandle = fileHandle;
+                this.tabManager.updateTabName(untitledTabId, fileHandle.name);
+                tab.editor.setValue(content, -1);
+                tab.editor.session.setMode(TextEditor.detectLanguage(file.name));
+                tab.editor.session.getUndoManager().reset();
+                tab.editor.session.getUndoManager().markClean();
+                this.tabManager.updateTabState(untitledTabId);
+                tabId = untitledTabId;
+            } else {
+                tabId = this.tabManager.createNewTab(fileHandle, content);
+                this.initEditor(tabId);
+            }
     
-          this.tabManager.activateTab(tabId);
-          this.getActiveEditor().focus();
-          TextEditor.showStatusMessage(`File ${fileHandle.name} opened`, 'saved');
+            this.tabManager.activateTab(tabId);
+            this.getActiveEditor().focus();
+            TextEditor.showStatusMessage(`File ${fileHandle.name} opened`, 'saved');
         } catch (err) {
-          console.error('Failed to open file:', err);
-          TextEditor.showStatusMessage('Error opening file', 'error');
+            console.error('Failed to open file:', err);
+            TextEditor.showStatusMessage('Error opening file', 'error');
         }
     }
 
     async openFileFromFileObject(file) {
         try {
-          const content = await file.text();
+            const content = await file.text();
+            const tabId = this.tabManager.createNewTab(null, content);
+            this.tabManager.updateTabName(tabId, file.name);
+            this.initEditor(tabId);
     
-          // Always create a new tab for each dropped file
-          const tabId = this.tabManager.createNewTab(null, content);
-          this.tabManager.updateTabName(tabId, file.name);
-          this.initEditor(tabId);
+            const editor = this.tabManager.getEditor(tabId);
+            if (editor) {
+                editor.session.setMode(TextEditor.detectLanguage(file.name));
+            }
     
-          // Set the correct language mode based on file extension
-          const editor = this.tabManager.getEditor(tabId);
-          if (editor) {
-            editor.session.setMode(TextEditor.detectLanguage(file.name));
-          }
+            this.tabManager.activateTab(tabId);
+            TextEditor.showStatusMessage(`File ${file.name} opened`, 'saved');
     
-          this.tabManager.activateTab(tabId);
-          TextEditor.showStatusMessage(`File ${file.name} opened`, 'saved');
+            const customFileInfo = {
+                name: file.name,
+                isCustom: true,
+                content: content,
+                lastModified: file.lastModified
+            };
     
-          // Create a custom file info object since we don't have a real FileSystemFileHandle
-          const customFileInfo = {
-            name: file.name,
-            isCustom: true,
-            content: content,
-            lastModified: file.lastModified
-          };
-    
-          // Store this custom file info in the tab
-          const tab = this.tabManager.tabs.get(tabId);
-          if (tab) {
-            tab.customFileInfo = customFileInfo;
-          }
+            const tab = this.tabManager.tabs.get(tabId);
+            if (tab) {
+                tab.customFileInfo = customFileInfo;
+            }
         } catch (err) {
-          console.error('Failed to open file:', err);
-          TextEditor.showStatusMessage('Error opening file', 'error');
+            console.error('Failed to open file:', err);
+            TextEditor.showStatusMessage('Error opening file', 'error');
         }
     }
 
@@ -2526,177 +2745,9 @@ class TextEditor {
         settingsButton.className = 'toolbar-button tooltip';
         settingsButton.setAttribute('data-tooltip', 'Settings');
         settingsButton.innerHTML = '<i class="fas fa-cog"></i>';
-        settingsButton.onclick = () => this.toggleSettingsWindow();
+        settingsButton.onclick = () => this.settings.toggleSettingsWindow();
 
         wrapButton.insertAdjacentElement('afterend', settingsButton);
-    }
-
-    setupSettingsWindow() {
-        this.settingsWindow = document.createElement('div');
-        this.settingsWindow.className = 'settings-window';
-        this.settingsWindow.innerHTML = `
-            <div class="settings-header">
-                <h3>Settings</h3>
-                <button class="settings-close">✕</button>
-            </div>
-            <div class="settings-content">
-                <div class="settings-field">
-                    <label>Storage Directory</label>
-                    <div class="settings-input-container">
-                        <input type="text" id="storageDirInput" value="${this.settings.getStorageDirectory()}">
-                        <button class="browse-button" id="browseDir">Browse</button>
-                    </div>
-                </div>
-                <div class="settings-toggle">
-                    <input type="checkbox" id="useStorageDir" ${this.settings.getUseStorageDirectory() ? 'checked' : ''}>
-                    <label for="useStorageDir">Use Storage Directory (unchecked uses last accessed location)</label>
-                </div>
-            
-                <div class="settings-section">
-                    <h4>Downloads</h4>
-                    <div class="download-container">
-                        <button id="downloadExtension" class="download-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Download AICodeBridge Chrome Extension (unpacked)
-                        </button>
-                        <br> 
-                        <u>Instructions:</u>
-                        <br>
-                        1. - Download the zip file, extract it.
-                        <br>
-                        2. - In google chrome go to chrome://extensions/ and enable developer mode.
-                        <br>
-                        3. - Click load unpacked and select the extracted folder.
-                    </div>
-                </div>
-            
-                <div class="settings-buttons">
-                    <button class="settings-button" id="settingsSave">Save</button>
-                    <button class="settings-button" id="settingsCancel">Cancel</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(this.settingsWindow);
-        this.settingsWindow.querySelector('#settingsSave').addEventListener('click', () => this.saveSettings());
-        this.settingsWindow.querySelector('#settingsCancel').addEventListener('click', () => this.toggleSettingsWindow());
-        this.settingsWindow.querySelector('.settings-close').addEventListener('click', () => this.toggleSettingsWindow());
-        this.settingsWindow.querySelector('#browseDir').addEventListener('click', () => this.browseDirectory());
-        this.settingsWindow.querySelector('#storageDirInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') this.saveSettings();
-        });
-        this.settingsWindow.querySelector('#useStorageDir').addEventListener('change', (e) => {
-            this.settings.setUseStorageDirectory(e.target.checked);
-        });
-        
-
-        this.settingsWindow.querySelector('#downloadExtension').addEventListener('click', () => {
-            this.downloadExtension('./AICodeBridgeExtension.zip');
-        });
-        
-        this.makeDraggable(this.settingsWindow);
-
-        this.centerSettingsWindow();
-    }
-
-
-    downloadExtension(filePath) {
-        const link = document.createElement('a');
-        link.href = filePath;
-        link.download = 'AICodeBridgeExtension.crx';
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        
-        setTimeout(() => {
-            document.body.removeChild(link);
-        }, 100);
-    }
-
-    toggleSettingsWindow() {
-        const isVisible = this.settingsWindow.classList.contains('visible');
-        if (!isVisible) {
-            this.settingsWindow.querySelector('#storageDirInput').value = this.settings.getStorageDirectory();
-            this.settingsWindow.querySelector('#useStorageDir').checked = this.settings.getUseStorageDirectory();
-            this.centerSettingsWindow();
-        }
-        this.settingsWindow.classList.toggle('visible');
-    }
-
-    saveSettings() {
-        const dirInput = this.settingsWindow.querySelector('#storageDirInput').value;
-        this.settings.setStorageDirectory(dirInput);
-        this.toggleSettingsWindow();
-        TextEditor.showStatusMessage('Settings saved', true);
-    }
-
-    async browseDirectory() {
-        try {
-            const dirHandle = await window.showDirectoryPicker();
-            this.settings.setDirHandle(dirHandle);
-            this.settingsWindow.querySelector('#storageDirInput').value = dirHandle.name;
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error('Failed to select directory:', err);
-                TextEditor.showStatusMessage('Error selecting directory');
-            }
-        }
-    }
-
-    makeDraggable(element) {
-        const header = element.querySelector('.settings-header');
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - element.getBoundingClientRect().left;
-            offsetY = e.clientY - element.getBoundingClientRect().top;
-            header.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                const newLeft = e.clientX - offsetX;
-                const newTop = e.clientY - offsetY;
-                const maxLeft = window.innerWidth - element.offsetWidth;
-                const maxTop = window.innerHeight - element.offsetHeight;
-                element.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
-                element.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
-                element.style.transform = 'none';
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                header.style.cursor = 'move';
-            }
-        });
-    }
-
-    centerSettingsWindow() {
-        const win = this.settingsWindow;
-        if (!win.classList.contains('visible')) {
-            requestAnimationFrame(() => {
-                const left = (window.innerWidth - win.offsetWidth) / 2;
-                const top = (window.innerHeight - win.offsetHeight) / 2;
-                win.style.left = `${left}px`;
-                win.style.top = `${top}px`;
-                win.style.transform = 'none';
-            });
-        } else {
-            const left = (window.innerWidth - win.offsetWidth) / 2;
-            const top = (window.innerHeight - win.offsetHeight) / 2;
-            win.style.left = `${left}px`;
-            win.style.top = `${top}px`;
-            win.style.transform = 'none';
-        }
     }
 
     updateStatusBarStyle() {
@@ -2704,68 +2755,67 @@ class TextEditor {
         let styleEl = document.getElementById(styleId);
     
         if (!styleEl) {
-          styleEl = document.createElement('style');
-          styleEl.id = styleId;
-          document.head.appendChild(styleEl);
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
         }
     
         styleEl.textContent = `
-          .status-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 28px;
-            background-color: rgba(35, 35, 35, 0.7);  /* Darker color and more transparent */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border);
-            transition: all 0.3s ease;
-            opacity: 0;
-            transform: translateY(100%);
-            z-index: 20;
-            pointer-events: none;
-          }
+            .status-bar {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 28px;
+                background-color: rgba(35, 35, 35, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                color: var(--text-secondary);
+                border-top: 1px solid var(--border);
+                transition: all 0.3s ease;
+                opacity: 0;
+                transform: translateY(100%);
+                z-index: 20;
+                pointer-events: none;
+            }
     
-          .status-bar.saved {
-            background-color: rgba(39, 174, 96, 0.75);  /* Darker green and slightly more transparent */
-            color: white;
-            opacity: 1;
-            transform: translateY(0);
-          }
+            .status-bar.saved {
+                background-color: rgba(39, 174, 96, 0.75);
+                color: white;
+                opacity: 1;
+                transform: translateY(0);
+            }
     
-          /* Reposition status bar to only cover the editor area */
-          .workspace {
-            position: relative;
-          }
+            .workspace {
+                position: relative;
+            }
     
-          .editor-container {
-            position: relative;
-          }
+            .editor-container {
+                position: relative;
+            }
     
-          #statusBar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            right: auto;
-          }
+            #statusBar {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                right: auto;
+            }
         `;
     
         const statusBar = document.getElementById('statusBar');
         const editorContainer = document.querySelector('.editor-container');
     
         if (statusBar && editorContainer) {
-          if (statusBar.parentElement !== editorContainer) {
-            statusBar.remove();
-            editorContainer.appendChild(statusBar);
-          }
+            if (statusBar.parentElement !== editorContainer) {
+                statusBar.remove();
+                editorContainer.appendChild(statusBar);
+            }
         }
-      }
     }
+}
 
 
 
