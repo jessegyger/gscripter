@@ -74,7 +74,7 @@
   Then navigate to `http://localhost:8080`.
 
 3. **Dependencies**:
-- The editor uses Ace Editor, which is included via CDN in `index.html`. No additional installation is required unless you modify the source.
+- The editor uses Ace Editor, which is included in `index.html`. No additional installation is required unless you modify the source.
 
 ### Chrome Extension Setup
 
