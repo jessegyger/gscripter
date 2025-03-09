@@ -4,7 +4,7 @@
 ![GitHub Stars](https://img.shields.io/github/stars/jessegyger/gscripter?style=social)
 ![GitHub Issues](https://img.shields.io/github/issues/jessegyger/gscripter)
 
-See my youtube video explaining and demonstrating its functionality here: https://youtu.be/4ICrtVaiaZc
+See my youtube video briefly explaining and demonstrating its functionality here: https://youtu.be/4ICrtVaiaZc
 
 Or try it out at: https://gygertech.com/gscripter
 
