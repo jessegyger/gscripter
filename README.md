@@ -30,9 +30,10 @@
    - [Submitting Issues](#submitting-issues)
    - [Pull Requests](#pull-requests)
 7. [Troubleshooting](#troubleshooting)
-8. [Roadmap](#roadmap)
-9. [License](#license)
-10. [Acknowledgments](#acknowledgments)
+8. [Disclaimer](#disclaimer)
+9. [Roadmap](#roadmap)
+10. [License](#license)
+11. [Acknowledgments](#acknowledgments)
 
 ## Features
 
