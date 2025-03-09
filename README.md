@@ -133,7 +133,7 @@ Note: You must refresh the AI model tab (Grok, Claude, etc.) for the code to pro
 
 - **Open**: Toggle the AST pane from the sidebar (`Ctrl+B` or sidebar button).
 - **Navigate**: Click nodes to expand/collapse, or use arrow keys for keyboard navigation.
-- **Select**: Click or Shift+click nodes to highlight corresponding code in the editor.
+- **Select**: Click or Shift+click nodes to highlight corresponding code in the editor. The arrow keys also can navigate the AST.
 
 ### Code Comparison
 
@@ -205,7 +205,7 @@ gscripter/
 - **Options**:
   - **Storage Directory**: Set a default save location.
   - **Use Storage Directory**: Toggle between last-used location and fixed directory.
-  - **Download Extension**: Re-download the Chrome extension if needed.
+  - **Download Extension**: Download the Chrome extension if needed.
 
 ### Customizing Keybindings
 
@@ -249,13 +249,17 @@ gscripter/
   - Refresh the Grok, Claude, ChatGPT or Gemini pages.
   - Check `chrome://extensions/` for errors in the extension.
 - **Editor Not Loading**:
-  - Verify Ace Editor CDN is accessible (or host locally).
   - Open browser console (`F12`) for JS errors.
 - **AI Code Not Importing**:
   - Confirm the extension is active on supported AI sites.
   - Reload the AI tab and editor.
 
 For more help, file an issue or check the [Discussions](https://github.com/jessegyger/gscripter/discussions) tab.
+
+
+
+## Disclaimer 
+ - This software may have bugs which could lead to unwanted outcomes.. Please make backups of your work just in case.
 
 ## Roadmap
 
