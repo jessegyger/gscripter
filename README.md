@@ -63,6 +63,7 @@ Or try it out at: https://gygertech.com/gscripter
    Simply download the zip and extract it or
    
    git clone https://github.com/jessegyger/gscripter.git
+   
    cd gscripter
 
 3. **Open in Browser**:
