@@ -4,7 +4,7 @@
 ![GitHub Stars](https://img.shields.io/github/stars/jessegyger/gscripter?style=social)
 ![GitHub Issues](https://img.shields.io/github/issues/jessegyger/gscripter)
 
-**Gscripter** is an open-source, lightweight code editor designed for web developers, with seamless integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to automatically import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gscripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
+**Gscripter** is an open-source, lightweight code editor designed for web developers, with integration of AI-generated code from models like Grok, Claude, ChatGPT, and Gemini. It bridges your existing AI subscriptions into your coding workflow via a Chrome extension, allowing you to automatically import, manage, and apply code blocks directly into your projects with a single click. Built with JavaScript, HTML, and CSS, gscripter leverages the Ace Editor for a robust editing experience and offers advanced features like AST visualization, code comparison, and real-time navigation of AI outputs.
 
 ## Table of Contents
 
@@ -71,7 +71,7 @@
   npm install -g http-server
   http-server .
   ```
-  Then navigate to `http://localhost:8080`.
+  Then navigate to `http://localhost:8080`
 
 3. **Dependencies**:
 - The editor uses Ace Editor, which is included in `index.html`. No additional installation is required unless you modify the source.
@@ -111,22 +111,23 @@
 Note: You must refresh the AI model tab (Grok, Claude, etc.) for the code to properly inject.
 
 3. **Manage Code**:
-- Use the navigation bar (arrows, slider) to browse code chunks.
+- Use the navigation bars (arrows, slider at the top and bottom of screen) to browse code chunks.
 - Click **Copy All**, **Replace All**, or **Paste at Cursor** from the top/bottom button groups.
-- Expand the "Code Blocks" section to see matched functions/classes/rules:
+-In the "Code Blocks" section, see matched functions/classes/rules:
   - **Replace**: Overwrite existing code.
   - **Insert**: Add new code at appropriate positions.
   - **Compare**: View differences in a diff window.
 
 ### Prompt Builder
 
-- **Open**: Click the prompt button (`>_`) in the toolbar.
+- **Open**: Click the prompt button (`>`) in the toolbar.
 - **Configure**:
   - Enter a **Prompt** and **Post Prompt** (instructions/context for the AI).
   - Add **Code Selections** from the editor by selecting code and clicking "Add Selection".
   - Toggle "Include Full Code" to send the entire file context.
 - **Send**: Click "Grok" or "Claude" to open a new chat tab with your prompt, or "Copy All" to clipboard.
   - There is a prompt character limit when sendinging to grok or claude due to sending the prompt in the url (around 20k characters)
+  - The send to ai feature is only for the first interaction with AI. You must maintain your conversation with the original AI service tab. 
 
 ### AST Viewer
 
@@ -216,7 +217,6 @@ gscripter/
       exec: () => { /* Your action */ }
   });
 
-## Contributing
 
 ### Getting Started
 
