@@ -218,6 +218,7 @@ gscripter/
       exec: () => { /* Your action */ }
   });
 
+## Contributing
 
 ### Getting Started
 
