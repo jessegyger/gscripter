@@ -7359,20 +7359,56 @@ class AICodeViewer {
         editor.setTheme("ace/theme/monokai");
         editor.setShowPrintMargin(false);
         editor.setOptions({
-            readOnly: true,
-            highlightActiveLine: false,
-            highlightSelectedWord: false,
+            readOnly: false, // Enable editing
+            highlightActiveLine: true,
+            highlightSelectedWord: true,
             showGutter: true,
             fontSize: 14,
             fontFamily: "Courier New, monospace",
-            enableBasicAutocompletion: false,
-            enableSnippets: false,
-            enableLiveAutocompletion: false,
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true,
             maxLines: Infinity,
             minLines: 1
         });
         editor.renderer.setScrollMargin(0, 0, 0, 0);
         editor.session.setUseWorker(false);
+    
+        // Flag to track editor's own changes
+        editor._internalChange = false;
+    
+        // Add change listener with appropriate debounce to prevent focus issues
+        const debouncedUpdateMatches = this.debounce(() => {
+            if (!this.isUpdating.has(blockId)) {
+                this.isUpdating.add(blockId);
+                try {
+                    // Only update the match list, not the editor content
+                    this.matchManager.updateMatchesWithoutDebounce(blockId);
+                } finally {
+                    this.isUpdating.delete(blockId);
+                }
+            }
+        }, 1000); // Longer debounce for match updates
+    
+        editor.session.on('change', (e) => {
+            // Skip if this change was triggered by our own updateContent method
+            if (editor._internalChange) return;
+        
+            // Otherwise, this is a user edit - schedule match updates
+            debouncedUpdateMatches();
+        
+            // Update the matchManager's content directly without modifying the editor
+            if (!this.isUpdating.has(blockId)) {
+                this.isUpdating.add(blockId);
+                try {
+                    const code = editor.getValue();
+                    this.matchManager.updateContent(blockId, code);
+                } finally {
+                    this.isUpdating.delete(blockId);
+                }
+            }
+        });
+    
         return editor;
     }
 
@@ -7514,15 +7550,41 @@ class AICodeViewer {
         if (!editorInfo) return;
 
         const { editor, languageLabel } = editorInfo;
-        const editorScrollTop = editor.getSession().getScrollTop();
-
-        editor.session.setValue(code);
+    
+        // Skip updating editor content if it's a user typing (not createEditor)
+        // or if content is already the same
+        if (createEditor) {
+            const currentValue = editor.getValue();
+            // Only set the value if different to avoid cursor reset
+            if (currentValue !== code) {
+                const cursorPosition = editor.getCursorPosition();
+                const scrollTop = editor.getSession().getScrollTop();
+            
+                // Flag that we're making an internal change
+                editor._internalChange = true;
+            
+                try {
+                    editor.session.setValue(code);
+                
+                    // Restore cursor and scroll position
+                    editor.moveCursorToPosition(cursorPosition);
+                    editor.getSession().setScrollTop(scrollTop);
+                } finally {
+                    // Reset the flag
+                    editor._internalChange = false;
+                }
+            }
+        }
+    
+        // Always update language if needed
         const language = this.detectLanguage(code);
         this.updateLanguageMode(blockId, language);
         if (languageLabel) languageLabel.textContent = language;
 
-        this.matchManager.updateContent(blockId, code);
-        editor.getSession().setScrollTop(editorScrollTop);
+        // Only update match manager content on initial creation or external triggers
+        if (createEditor) {
+            this.matchManager.updateContent(blockId, code);
+        }
     }
 
     detectLanguage(code) {
